@@ -17,6 +17,7 @@ def validate_url(url: Optional[str]) -> Optional[str]:
         raise ValueError('Invalid URL format')
     return url
 
+
 class UserBase(BaseModel):
     email: EmailStr = Field(..., example="john.doe@example.com")
     nickname: Optional[str] = Field(None, min_length=3, pattern=r'^[\w-]+$', example=generate_nickname())
@@ -24,14 +25,16 @@ class UserBase(BaseModel):
     last_name: Optional[str] = Field(None, example="Doe")
     bio: Optional[str] = Field(None, example="Experienced software developer specializing in web applications.")
     profile_picture_url: Optional[str] = Field(None, example="https://example.com/profiles/john.jpg")
-    linkedin_profile_url: Optional[str] =Field(None, example="https://linkedin.com/in/johndoe")
+    linkedin_profile_url: Optional[str] = Field(None, example="https://linkedin.com/in/johndoe")
     github_profile_url: Optional[str] = Field(None, example="https://github.com/johndoe")
     role: UserRole
 
-    _validate_urls = validator('profile_picture_url', 'linkedin_profile_url', 'github_profile_url', pre=True, allow_reuse=True)(validate_url)
- 
+    _validate_urls = validator('profile_picture_url', 'linkedin_profile_url', 'github_profile_url',
+                               pre=True, allow_reuse=True)(validate_url)
+
     class Config:
         from_attributes = True
+
 
 class UserCreate(UserBase):
     email: EmailStr = Field(..., example="john.doe@example.com")
@@ -65,15 +68,16 @@ class UserCreate(UserBase):
             raise ValueError("Password must contain at least one special character.")
         return value
 
+
 class UserUpdate(UserBase):
     email: Optional[EmailStr] = Field(None, example="john.doe@example.com")
-    nickname: Optional[str] = Field(None, min_length=3, max_length=30, regex=r'^[a-zA-Z0-9_-]+$', example="john_doe123")
+    nickname: Optional[str] = Field(None, min_length=3, max_length=30, pattern=r'^[a-zA-Z0-9_-]+$', example="john_doe123")
     first_name: Optional[str] = Field(None, example="John")
     last_name: Optional[str] = Field(None, example="Doe")
     bio: Optional[str] = Field(None, example="Experienced software developer specializing in web applications.")
-    profile_picture_url: Optional[HttpUrl] = Field(None, example="https://example.com/profiles/john.jpg")
-    linkedin_profile_url: Optional[HttpUrl] =Field(None, example="https://linkedin.com/in/johndoe")
-    github_profile_url: Optional[HttpUrl] = Field(None, example="https://github.com/johndoe")
+    profile_picture_url: Optional[str] = Field(None, example="https://example.com/profiles/john.jpg")
+    linkedin_profile_url: Optional[str] = Field(None, example="https://linkedin.com/in/johndoe")
+    github_profile_url: Optional[str] = Field(None, example="https://github.com/johndoe")
     role: Optional[str] = Field(None, example="AUTHENTICATED")
 
     @root_validator(pre=True)
@@ -88,7 +92,7 @@ class UserUpdate(UserBase):
         if value and (not re.match(r'^[a-zA-Z0-9_-]+$', value)):
             raise ValueError("Nickname must contain only alphanumeric characters, underscores, or hyphens.")
         return value
-    
+
     @validator("profile_picture_url")
     def validate_profile_picture_url(cls, value):
         """Restrict profile picture URL to common image formats."""
@@ -96,28 +100,31 @@ class UserUpdate(UserBase):
             raise ValueError("Profile picture URL must link to a valid image file (.png, .jpg, .jpeg, .gif).")
         return value
 
+
 class UserResponse(UserBase):
     id: uuid.UUID = Field(..., example=uuid.uuid4())
     email: EmailStr = Field(..., example="john.doe@example.com")
-    nickname: Optional[str] = Field(None, min_length=3, pattern=r'^[\w-]+$', example=generate_nickname())    
+    nickname: Optional[str] = Field(None, min_length=3, pattern=r'^[\w-]+$', example=generate_nickname())
     is_professional: Optional[bool] = Field(default=False, example=True)
     role: UserRole
+
 
 class LoginRequest(BaseModel):
     email: str = Field(..., example="john.doe@example.com")
     password: str = Field(..., example="Secure*1234")
 
+
 class ErrorResponse(BaseModel):
     error: str = Field(..., example="Not Found")
     details: Optional[str] = Field(None, example="The requested resource was not found.")
+
 
 class UserListResponse(BaseModel):
     items: List[UserResponse] = Field(..., example=[{
         "id": uuid.uuid4(), "nickname": generate_nickname(), "email": "john.doe@example.com",
         "first_name": "John", "bio": "Experienced developer", "role": "AUTHENTICATED",
-        "last_name": "Doe", "bio": "Experienced developer", "role": "AUTHENTICATED",
-        "profile_picture_url": "https://example.com/profiles/john.jpg", 
-        "linkedin_profile_url": "https://linkedin.com/in/johndoe", 
+        "last_name": "Doe", "profile_picture_url": "https://example.com/profiles/john.jpg",
+        "linkedin_profile_url": "https://linkedin.com/in/johndoe",
         "github_profile_url": "https://github.com/johndoe"
     }])
     total: int = Field(..., example=100)
