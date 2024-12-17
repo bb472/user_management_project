@@ -37,6 +37,21 @@ class UserCreate(UserBase):
     email: EmailStr = Field(..., example="john.doe@example.com")
     password: str = Field(..., example="Secure*1234")
 
+    @validator("email")
+    def validate_email(cls, value):
+        # Configurable list of allowed domains
+        allowed_domains = {"example.com", "test.org"}
+        # Extract domain from email
+        domain = value.split("@")[-1].lower()
+        if domain not in allowed_domains:
+            raise ValueError(f"Email domain must be one of {', '.join(allowed_domains)}.")
+        # Check for prohibited patterns in the username
+        username = value.split("@")[0].lower()
+        if re.search(r"admin", username):
+            raise ValueError("Email username cannot contain 'admin'.")
+        
+        return value
+
 class UserUpdate(UserBase):
     email: Optional[EmailStr] = Field(None, example="john.doe@example.com")
     nickname: Optional[str] = Field(None, min_length=3, pattern=r'^[\w-]+$', example="john_doe123")
