@@ -101,6 +101,27 @@ class UserUpdate(UserBase):
         return value
 
 
+    @root_validator(pre=True)
+    def check_at_least_one_value(cls, values):
+        if not any(values.values()):
+            raise ValueError("At least one field must be provided for update")
+        return values
+
+    @validator("nickname", pre=True)
+    def validate_nickname(cls, value):
+        """Validate nickname rules."""
+        if value and (not re.match(r'^[a-zA-Z0-9_-]+$', value)):
+            raise ValueError("Nickname must contain only alphanumeric characters, underscores, or hyphens.")
+        return value
+
+    @validator("profile_picture_url")
+    def validate_profile_picture_url(cls, value):
+        """Restrict profile picture URL to common image formats."""
+        if value and not value.lower().endswith((".png", ".jpg", ".jpeg", ".gif")):
+            raise ValueError("Profile picture URL must link to a valid image file (.png, .jpg, .jpeg, .gif).")
+        return value
+
+
 class UserResponse(UserBase):
     id: uuid.UUID = Field(..., example=uuid.uuid4())
     email: EmailStr = Field(..., example="john.doe@example.com")
