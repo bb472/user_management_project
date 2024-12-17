@@ -37,6 +37,20 @@ class UserCreate(UserBase):
     email: EmailStr = Field(..., example="john.doe@example.com")
     password: str = Field(..., example="Secure*1234")
 
+    @validator("password")
+    def validate_password(cls, value):
+        if len(value) < 8:
+            raise ValueError("Password must be at least 8 characters long.")
+        if not any(char.isupper() for char in value):
+            raise ValueError("Password must contain at least one uppercase letter.")
+        if not any(char.islower() for char in value):
+            raise ValueError("Password must contain at least one lowercase letter.")
+        if not any(char.isdigit() for char in value):
+            raise ValueError("Password must contain at least one digit.")
+        if not re.search(r"[!@#$%^&*(),.?\":{}|<>]", value):
+            raise ValueError("Password must contain at least one special character.")
+         return value
+
     @validator("email")
     def validate_email(cls, value):
         # Configurable list of allowed domains
@@ -49,7 +63,7 @@ class UserCreate(UserBase):
         username = value.split("@")[0].lower()
         if re.search(r"admin", username):
             raise ValueError("Email username cannot contain 'admin'.")
-        
+     
         return value
 
 class UserUpdate(UserBase):
