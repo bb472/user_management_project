@@ -1,4 +1,3 @@
-# email_service.py
 from builtins import ValueError, dict, str
 from settings.config import settings
 from app.utils.smtp_connection import SMTPClient
@@ -25,8 +24,17 @@ class EmailService:
         if email_type not in subject_map:
             raise ValueError("Invalid email type")
 
-        html_content = self.template_manager.render_template(email_type, **user_data)
-        self.smtp_client.send_email(subject_map[email_type], html_content, user_data['email'])
+        try:
+            html_content = self.template_manager.render_template(email_type, **user_data)
+        except Exception as e:
+            print(f"Error rendering template for {email_type}: {str(e)}")
+            raise 
+
+        try:
+            await asyncio.to_thread(self.smtp_client.send_email, subject_map[email_type], html_content, user_data['email'])
+        except Exception as e:
+            print(f"Error sending email to {user_data['email']}: {str(e)}")
+            raise 
 
     async def send_verification_email(self, user: User):
         verification_url = f"{settings.server_base_url}verify-email/{user.id}/{user.verification_token}"
