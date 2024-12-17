@@ -49,12 +49,6 @@ class UserCreate(UserBase):
         username = value.split("@")[0].lower()
         if re.search(r"admin", username):
             raise ValueError("Email username cannot contain 'admin'.")
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-        
-=======
-=======
->>>>>>> Stashed changes
         return value
 
     @validator("password")
@@ -69,7 +63,6 @@ class UserCreate(UserBase):
             raise ValueError("Password must contain at least one digit.")
         if not re.search(r"[!@#$%^&*(),.?\":{}|<>]", value):
             raise ValueError("Password must contain at least one special character.")
->>>>>>> Stashed changes
         return value
 
 class UserUpdate(UserBase):
