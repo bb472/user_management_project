@@ -50,8 +50,11 @@ class UserCreate(UserBase):
         if re.search(r"admin", username):
             raise ValueError("Email username cannot contain 'admin'.")
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
         
 =======
+=======
+>>>>>>> Stashed changes
         return value
 
     @validator("password")
