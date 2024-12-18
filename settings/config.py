@@ -2,12 +2,14 @@ from builtins import bool, int, str
 from pathlib import Path
 from pydantic import  Field, AnyUrl, DirectoryPath
 from pydantic_settings import BaseSettings
+from typing import ClassVar
 
 class Settings(BaseSettings):
     max_login_attempts: int = Field(default=3, description="Background color of QR codes")
     # Server configuration
     server_base_url: AnyUrl = Field(default='http://localhost', description="Base URL of the server")
     server_download_folder: str = Field(default='downloads', description="Folder for storing downloaded files")
+    min_password_length: ClassVar[int] = 5
 
     # Security and authentication configuration
     secret_key: str = Field(default="secret-key", description="Secret key for encryption")
@@ -16,10 +18,10 @@ class Settings(BaseSettings):
     admin_user: str = Field(default='admin', description="Default admin username")
     admin_password: str = Field(default='secret', description="Default admin password")
     debug: bool = Field(default=False, description="Debug mode outputs errors and sqlalchemy queries")
-    jwt_secret_key: str = "a_very_secret_key"
-    jwt_algorithm: str = "HS256"
-    access_token_expire_minutes: int = 15  # 15 minutes for access token
-    refresh_token_expire_minutes: int = 1440  # 24 hours for refresh token
+    jwt_secret_key: str = Field(default="a_very_secret_key")
+    jwt_algorithm: str = Field(default="HS256")
+    access_token_expire_minutes: int = Field(default=15)
+    refresh_token_expire_minutes: int = Field(default=1440)
     # Database configuration
     database_url: str = Field(default='postgresql+asyncpg://user:password@postgres/myappdb', description="URL for connecting to the database")
 
