@@ -17,7 +17,7 @@ from app.models.user_model import UserRole
 import logging
 
 settings = get_settings()
-logger = logging.getLogger(_name_)
+logger = logging.getLogger(__name__)
 
 class UserService:
     @classmethod
