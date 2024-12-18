@@ -10,7 +10,7 @@
 
 **Issue:** Email verification in user creation
 
-**Details:** The issue details are following:
+**Details:** The issue details are following :
 
 1. **Format Validation of Email:** The `EmailStr` type from `Pydantic` class ensures the email is in a valid format (e.g., test@domain. com). But, using patterns like `admin` is not restricted.
 2. **Configurable Domains:** There is no dynamic use of a set of domains from email providers.
