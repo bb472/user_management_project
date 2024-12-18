@@ -37,15 +37,43 @@ class UserCreate(UserBase):
     email: EmailStr = Field(..., example="john.doe@example.com")
     password: str = Field(..., example="Secure*1234")
 
+    @validator("email")
+    def validate_email(cls, value):
+        # Configurable list of allowed domains
+        allowed_domains = {"example.com", "test.org"}
+        # Extract domain from email
+        domain = value.split("@")[-1].lower()
+        if domain not in allowed_domains:
+            raise ValueError(f"Email domain must be one of {', '.join(allowed_domains)}.")
+        # Check for prohibited patterns in the username
+        username = value.split("@")[0].lower()
+        if re.search(r"admin", username):
+            raise ValueError("Email username cannot contain 'admin'.")
+        return value
+
+    @validator("password")
+    def validate_password(cls, value):
+        if len(value) < 8:
+            raise ValueError("Password must be at least 8 characters long.")
+        if not any(char.isupper() for char in value):
+            raise ValueError("Password must contain at least one uppercase letter.")
+        if not any(char.islower() for char in value):
+            raise ValueError("Password must contain at least one lowercase letter.")
+        if not any(char.isdigit() for char in value):
+            raise ValueError("Password must contain at least one digit.")
+        if not re.search(r"[!@#$%^&*(),.?\":{}|<>]", value):
+            raise ValueError("Password must contain at least one special character.")
+        return value
+
 class UserUpdate(UserBase):
     email: Optional[EmailStr] = Field(None, example="john.doe@example.com")
-    nickname: Optional[str] = Field(None, min_length=3, pattern=r'^[\w-]+$', example="john_doe123")
+    nickname: Optional[str] = Field(None, min_length=3, max_length=30, regex=r'^[a-zA-Z0-9_-]+$', example="john_doe123")
     first_name: Optional[str] = Field(None, example="John")
     last_name: Optional[str] = Field(None, example="Doe")
     bio: Optional[str] = Field(None, example="Experienced software developer specializing in web applications.")
-    profile_picture_url: Optional[str] = Field(None, example="https://example.com/profiles/john.jpg")
-    linkedin_profile_url: Optional[str] =Field(None, example="https://linkedin.com/in/johndoe")
-    github_profile_url: Optional[str] = Field(None, example="https://github.com/johndoe")
+    profile_picture_url: Optional[HttpUrl] = Field(None, example="https://example.com/profiles/john.jpg")
+    linkedin_profile_url: Optional[HttpUrl] =Field(None, example="https://linkedin.com/in/johndoe")
+    github_profile_url: Optional[HttpUrl] = Field(None, example="https://github.com/johndoe")
     role: Optional[str] = Field(None, example="AUTHENTICATED")
 
     @root_validator(pre=True)
@@ -53,6 +81,20 @@ class UserUpdate(UserBase):
         if not any(values.values()):
             raise ValueError("At least one field must be provided for update")
         return values
+
+    @validator("nickname", pre=True)
+    def validate_nickname(cls, value):
+        """Validate nickname rules."""
+        if value and (not re.match(r'^[a-zA-Z0-9_-]+$', value)):
+            raise ValueError("Nickname must contain only alphanumeric characters, underscores, or hyphens.")
+        return value
+    
+    @validator("profile_picture_url")
+    def validate_profile_picture_url(cls, value):
+        """Restrict profile picture URL to common image formats."""
+        if value and not value.lower().endswith((".png", ".jpg", ".jpeg", ".gif")):
+            raise ValueError("Profile picture URL must link to a valid image file (.png, .jpg, .jpeg, .gif).")
+        return value
 
 class UserResponse(UserBase):
     id: uuid.UUID = Field(..., example=uuid.uuid4())
