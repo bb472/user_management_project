@@ -2,14 +2,12 @@ from builtins import ValueError, any, bool, str
 from pydantic import BaseModel, EmailStr, Field, validator, root_validator, HttpUrl
 from typing import Optional, List
 from datetime import datetime
-from enum import Enum
 import uuid
 import re
 from app.models.user_model import UserRole
 from app.utils.nickname_gen import generate_nickname
 
 
-# Utility function to validate URLs
 def validate_url(url: Optional[str]) -> Optional[str]:
     if url is None:
         return url
@@ -22,7 +20,7 @@ def validate_url(url: Optional[str]) -> Optional[str]:
 # ----------------- User Base Schema ----------------- #
 class UserBase(BaseModel):
     email: EmailStr = Field(..., example="john.doe@example.com")
-    nickname: Optional[str] = Field(None, min_length=3, regex=r'^[\w-]+$', example=generate_nickname())
+    nickname: Optional[str] = Field(None, min_length=3, pattern=r'^[\w-]+$', example=generate_nickname())
     first_name: Optional[str] = Field(None, example="John")
     last_name: Optional[str] = Field(None, example="Doe")
     bio: Optional[str] = Field(None, example="Experienced software developer.")
@@ -31,9 +29,10 @@ class UserBase(BaseModel):
     github_profile_url: Optional[str] = Field(None, example="https://github.com/johndoe")
     role: UserRole = Field(..., example="AUTHENTICATED")
 
-    # URL validator for multiple fields
-    _validate_urls = validator('profile_picture_url', 'linkedin_profile_url', 'github_profile_url',
-                               pre=True, allow_reuse=True)(validate_url)
+    _validate_urls = validator(
+        "profile_picture_url", "linkedin_profile_url", "github_profile_url",
+        pre=True, allow_reuse=True
+    )(validate_url)
 
     class Config:
         from_attributes = True
@@ -107,19 +106,22 @@ class ErrorResponse(BaseModel):
 
 # ----------------- User List Response Schema ----------------- #
 class UserListResponse(BaseModel):
-    items: List[UserResponse] = Field(..., example=[
-        {
-            "id": uuid.uuid4(),
-            "nickname": generate_nickname(),
-            "email": "john.doe@example.com",
-            "first_name": "John",
-            "bio": "Experienced developer",
-            "role": "AUTHENTICATED",
-            "profile_picture_url": "https://example.com/profiles/john.jpg",
-            "linkedin_profile_url": "https://linkedin.com/in/johndoe",
-            "github_profile_url": "https://github.com/johndoe"
-        }
-    ])
+    items: List[UserResponse] = Field(
+        ...,
+        example=[
+            {
+                "id": uuid.uuid4(),
+                "nickname": generate_nickname(),
+                "email": "john.doe@example.com",
+                "first_name": "John",
+                "bio": "Experienced developer",
+                "role": "AUTHENTICATED",
+                "profile_picture_url": "https://example.com/profiles/john.jpg",
+                "linkedin_profile_url": "https://linkedin.com/in/johndoe",
+                "github_profile_url": "https://github.com/johndoe",
+            }
+        ],
+    )
     total: int = Field(..., example=100)
     page: int = Field(..., example=1)
     size: int = Field(..., example=10)
