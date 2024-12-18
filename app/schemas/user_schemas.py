@@ -1,5 +1,5 @@
- from builtins import ValueError, any, bool, str
-from pydantic import BaseModel, EmailStr, Field, validator, root_validator
+from builtins import ValueError, any, bool, str
+from pydantic import BaseModel, EmailStr, Field, validator, root_validator, HttpUrl
 from typing import Optional, List
 from datetime import datetime
 from enum import Enum
@@ -19,12 +19,12 @@ def validate_url(url: Optional[str]) -> Optional[str]:
 
 class UserBase(BaseModel):
     email: EmailStr = Field(..., example="john.doe@example.com")
-    nickname: Optional[str] = Field(None, min_length=3, pattern=r'^[\w-]+$', example=generate_nickname())
+    nickname: Optional[str] = Field(None, min_length=3, regex=r'^[\w-]+$', example=generate_nickname())
     first_name: Optional[str] = Field(None, example="John")
     last_name: Optional[str] = Field(None, example="Doe")
     bio: Optional[str] = Field(None, example="Experienced software developer specializing in web applications.")
     profile_picture_url: Optional[str] = Field(None, example="https://example.com/profiles/john.jpg")
-    linkedin_profile_url: Optional[str] =Field(None, example="https://linkedin.com/in/johndoe")
+    linkedin_profile_url: Optional[str] = Field(None, example="https://linkedin.com/in/johndoe")
     github_profile_url: Optional[str] = Field(None, example="https://github.com/johndoe")
     role: UserRole
 
@@ -39,13 +39,10 @@ class UserCreate(UserBase):
 
     @validator("email")
     def validate_email(cls, value):
-        # Configurable list of allowed domains
         allowed_domains = {"example.com", "test.org"}
-        # Extract domain from email
         domain = value.split("@")[-1].lower()
         if domain not in allowed_domains:
             raise ValueError(f"Email domain must be one of {', '.join(allowed_domains)}.")
-        # Check for prohibited patterns in the username
         username = value.split("@")[0].lower()
         if re.search(r"admin", username):
             raise ValueError("Email username cannot contain 'admin'.")
@@ -67,31 +64,16 @@ class UserCreate(UserBase):
 
 class UserUpdate(UserBase):
     email: Optional[EmailStr] = Field(None, example="john.doe@example.com")
-    nickname: Optional[str] = Field(None, min_length=3, max_length=30, regex=r'^[a-zA-Z0-9_-]+$', example="john_doe123")
-    first_name: Optional[str] = Field(None, example="John")
-    last_name: Optional[str] = Field(None, example="Doe")
-    bio: Optional[str] = Field(None, example="Experienced software developer specializing in web applications.")
-    profile_picture_url: Optional[HttpUrl] = Field(None, example="https://example.com/profiles/john.jpg")
-    linkedin_profile_url: Optional[HttpUrl] =Field(None, example="https://linkedin.com/in/johndoe")
-    github_profile_url: Optional[HttpUrl] = Field(None, example="https://github.com/johndoe")
     role: Optional[str] = Field(None, example="AUTHENTICATED")
 
     @root_validator(pre=True)
     def check_at_least_one_value(cls, values):
         if not any(values.values()):
-            raise ValueError("At least one field must be provided for update")
+            raise ValueError("At least one field must be provided for update.")
         return values
 
-    @validator("nickname", pre=True)
-    def validate_nickname(cls, value):
-        """Validate nickname rules."""
-        if value and (not re.match(r'^[a-zA-Z0-9_-]+$', value)):
-            raise ValueError("Nickname must contain only alphanumeric characters, underscores, or hyphens.")
-        return value
-    
     @validator("profile_picture_url")
     def validate_profile_picture_url(cls, value):
-        """Restrict profile picture URL to common image formats."""
         if value and not value.lower().endswith((".png", ".jpg", ".jpeg", ".gif")):
             raise ValueError("Profile picture URL must link to a valid image file (.png, .jpg, .jpeg, .gif).")
         return value
@@ -99,7 +81,7 @@ class UserUpdate(UserBase):
 class UserResponse(UserBase):
     id: uuid.UUID = Field(..., example=uuid.uuid4())
     email: EmailStr = Field(..., example="john.doe@example.com")
-    nickname: Optional[str] = Field(None, min_length=3, pattern=r'^[\w-]+$', example=generate_nickname())    
+    nickname: Optional[str] = Field(None, min_length=3, regex=r'^[\w-]+$', example=generate_nickname())
     is_professional: Optional[bool] = Field(default=False, example=True)
     role: UserRole
 
@@ -115,7 +97,6 @@ class UserListResponse(BaseModel):
     items: List[UserResponse] = Field(..., example=[{
         "id": uuid.uuid4(), "nickname": generate_nickname(), "email": "john.doe@example.com",
         "first_name": "John", "bio": "Experienced developer", "role": "AUTHENTICATED",
-        "last_name": "Doe", "bio": "Experienced developer", "role": "AUTHENTICATED",
         "profile_picture_url": "https://example.com/profiles/john.jpg", 
         "linkedin_profile_url": "https://linkedin.com/in/johndoe", 
         "github_profile_url": "https://github.com/johndoe"
