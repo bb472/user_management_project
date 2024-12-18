@@ -20,13 +20,13 @@ def validate_url(url: Optional[str]) -> Optional[str]:
 # ----------------- User Base Schema ----------------- #
 class UserBase(BaseModel):
     email: EmailStr = Field(..., example="john.doe@example.com")
-    nickname: Optional[str] = Field(None, min_length=3, pattern=r'^[\w-]+$', example=generate_nickname())
+    nickname: Optional[str] = Field(None, min_length=3, regex=r'^[\w-]+$', example=generate_nickname())
     first_name: Optional[str] = Field(None, example="John")
     last_name: Optional[str] = Field(None, example="Doe")
     bio: Optional[str] = Field(None, example="Experienced software developer.")
-    profile_picture_url: Optional[str] = Field(None, example="https://example.com/profiles/john.jpg")
-    linkedin_profile_url: Optional[str] = Field(None, example="https://linkedin.com/in/johndoe")
-    github_profile_url: Optional[str] = Field(None, example="https://github.com/johndoe")
+    profile_picture_url: Optional[HttpUrl] = Field(None, example="https://example.com/profiles/john.jpg")
+    linkedin_profile_url: Optional[HttpUrl] = Field(None, example="https://linkedin.com/in/johndoe")
+    github_profile_url: Optional[HttpUrl] = Field(None, example="https://github.com/johndoe")
     role: UserRole = Field(..., example="AUTHENTICATED")
 
     _validate_urls = validator(
@@ -114,11 +114,11 @@ class UserListResponse(BaseModel):
                 "nickname": generate_nickname(),
                 "email": "john.doe@example.com",
                 "first_name": "John",
+                "last_name": "Doe",
                 "bio": "Experienced developer",
                 "role": "AUTHENTICATED",
-                "profile_picture_url": "https://example.com/profiles/john.jpg",
+                "profile_picture_url": "https://example.com/profiles/john.jpg", 
                 "linkedin_profile_url": "https://linkedin.com/in/johndoe",
-                "github_profile_url": "https://github.com/johndoe",
             }
         ],
     )
