@@ -34,7 +34,7 @@
 
 **Issue:** Validate Nickname
 
-**Details:** The issue details are following:
+**Details:** The issue details are following :
 
 1.	**Valid Nickname Usage:** There is no validation to allow nicknames using characters, underscores, or hyphens.
 2.	**Length Validation:** Both minimum and maximum lengths are not declared.
