@@ -57,7 +57,7 @@
 
 **Issue:** Issues in Email Service
 
-**Details:** The issue details are following:
+**Details:** The issue details are following :
 
 1.	**Synchronous Call inside Asynchronous Method:** Inside the `send_user_email` async method, the send email is called synchronously. 
 2.	**Exceptions are not handled in Email Service:** During rendering and sending emails, exceptions are not handled in `send_user_email` method.
